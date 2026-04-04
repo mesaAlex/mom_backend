@@ -249,6 +249,39 @@ const recipes = [
       "Add granola for crunch and serve cold.",
     ],
   },
+  {
+    id: 9,
+    title: "Lemon Herb Shrimp Bowl",
+    description:
+      "Light and zesty shrimp over fluffy rice with roasted veggies and a garlic-lemon drizzle.",
+    image: "/images/salmon_salad.png",
+    tags: ["High-protein", "Low-carb", "Anti-inflammatory"],
+    prepMinutes: 10,
+    cookMinutes: 10,
+    servings: 2,
+    calories: 370,
+    ingredients: [
+      "1 lb shrimp, peeled and deveined",
+      "1 cup jasmine rice, cooked",
+      "1 cup zucchini, diced",
+      "1/2 cup bell pepper, diced",
+      "2 cloves garlic, minced",
+      "2 tbsp olive oil",
+      "1 tbsp lemon juice",
+      "1 tsp dried thyme",
+      "1/2 tsp red pepper flakes",
+      "Fresh parsley for garnish",
+      "Salt & pepper to taste",
+    ],
+    instructions: [
+      "Heat olive oil in a skillet over medium-high heat. Add garlic and cook for 30 seconds.",
+      "Add shrimp, thyme, red pepper flakes, salt, and pepper. Cook for 2-3 minutes per side until pink.",
+      "Remove shrimp and set aside. In the same pan, sauté zucchini and bell pepper for 4-5 minutes.",
+      "Divide cooked rice between two bowls and top with the sautéed vegetables.",
+      "Arrange shrimp on top and drizzle with lemon juice and a bit more olive oil.",
+      "Garnish with fresh parsley and serve immediately.",
+    ],
+  },
 ];
 
 module.exports = recipes;
