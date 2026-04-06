@@ -1,0 +1,189 @@
+:root {
+  --beige: #efe6dc;
+  --accent: #8d5b47;
+  --muted: #7a9a8e;
+  --dark: #3b2f2a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Instrument Sans', Arial, sans-serif;
+  background: #faf7f5;
+  color: var(--dark);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background: #f2ebe6;
+  padding: 20px 0;
+  border-bottom: 3px solid var(--accent);
+}
+
+.wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+header .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.brand span {
+  color: var(--accent);
+}
+
+.badge {
+  background: var(--muted);
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+main {
+  flex: 1;
+  padding: 48px 0;
+}
+
+h1 {
+  font-size: 2.2rem;
+  font-weight: 300;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 1.05rem;
+  margin-bottom: 40px;
+  line-height: 1.6;
+}
+
+.endpoint-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.endpoint-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.endpoint-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.method {
+  display: inline-block;
+  background: var(--muted);
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.endpoint-path {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.endpoint-path a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent);
+}
+
+.endpoint-path a:hover {
+  border-bottom-style: solid;
+}
+
+.endpoint-desc {
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+.response-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.response-preview {
+  background: var(--dark);
+  color: #e8dfd7;
+  padding: 16px 20px;
+  border-radius: 8px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 40px;
+}
+
+.info-card {
+  background: #f2ebe6;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.info-card h3 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--accent);
+}
+
+.info-card p {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+footer {
+  background: var(--accent);
+  color: #fff;
+  text-align: center;
+  padding: 18px 0;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+  h1 { font-size: 1.7rem; }
+  .endpoint-card { padding: 20px; }
+  .endpoint-header { gap: 8px; }
+}
