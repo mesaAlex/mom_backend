@@ -96,7 +96,7 @@
 
       <div class="info-grid">
         <div class="info-card">
-          <h3>9 Recipes</h3>
+          <h3 id="recipe-count">… Recipes</h3>
           <p>Detailed nutrition-focused entries</p>
         </div>
         <div class="info-card">
@@ -114,5 +114,13 @@
   <footer>
     <div class="wrap">&copy; 2026 Meals on Mesa &mdash; API Server</div>
   </footer>
+
+  <script>
+    fetch("/api/recipes")
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("recipe-count").textContent = data.length + " Recipes";
+      });
+  </script>
 </body>
 </html>
