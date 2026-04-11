@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const Joi = require("joi");
+const multer = require("multer");
 const recipes = require("./data/recipes");
 
 const app = express();
@@ -9,8 +11,23 @@ const PORT = process.env.PORT || 3001;
 // Enable CORS for all origins so the React client can access the API
 app.use(cors());
 
+// Parse JSON request bodies
+app.use(express.json());
+
 // Serve static files from /public (includes /images)
 app.use(express.static(path.join(__dirname, "public")));
+
+// Multer storage config for image uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./public/images/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
 
 // ---------- API Routes ----------
 
@@ -30,6 +47,61 @@ app.get("/api/recipes/:id", (req, res) => {
 
   res.json(recipe);
 });
+
+// POST /api/recipes — add a new recipe
+app.post("/api/recipes", upload.single("img"), (req, res) => {
+  // Parse array fields sent as JSON strings from FormData
+  const body = {
+    ...req.body,
+    tags: req.body.tags ? JSON.parse(req.body.tags) : [],
+    ingredients: req.body.ingredients ? JSON.parse(req.body.ingredients) : [],
+    instructions: req.body.instructions ? JSON.parse(req.body.instructions) : [],
+    prepMinutes: Number(req.body.prepMinutes),
+    cookMinutes: Number(req.body.cookMinutes),
+    servings: Number(req.body.servings),
+    calories: Number(req.body.calories),
+  };
+
+  const result = validateRecipe(body);
+
+  if (result.error) {
+    res.status(400).send(result.error.details[0].message);
+    return;
+  }
+
+  const recipe = {
+    id: recipes.length + 1,
+    title: body.title,
+    description: body.description,
+    image: req.file ? `/images/${req.file.filename}` : "/images/salmon_salad.png",
+    tags: body.tags,
+    prepMinutes: body.prepMinutes,
+    cookMinutes: body.cookMinutes,
+    servings: body.servings,
+    calories: body.calories,
+    ingredients: body.ingredients,
+    instructions: body.instructions,
+  };
+
+  recipes.push(recipe);
+  res.status(200).send(recipe);
+});
+
+const validateRecipe = (recipe) => {
+  const schema = Joi.object({
+    title: Joi.string().min(3).required(),
+    description: Joi.string().min(5).required(),
+    tags: Joi.array().items(Joi.string()).min(1).required(),
+    prepMinutes: Joi.number().min(0).required(),
+    cookMinutes: Joi.number().min(0).required(),
+    servings: Joi.number().min(1).required(),
+    calories: Joi.number().min(0).required(),
+    ingredients: Joi.array().items(Joi.string()).min(1).required(),
+    instructions: Joi.array().items(Joi.string()).min(1).required(),
+  });
+
+  return schema.validate(recipe);
+};
 
 // ---------- Root — serve API docs page ----------
 
