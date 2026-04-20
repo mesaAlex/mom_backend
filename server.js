@@ -87,6 +87,63 @@ app.post("/api/recipes", upload.single("img"), (req, res) => {
   res.status(200).send(recipe);
 });
 
+// PUT /api/recipes/:id — update an existing recipe
+app.put("/api/recipes/:id", upload.single("img"), (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const index = recipes.findIndex((r) => r.id === id);
+
+  if (index === -1) {
+    return res.status(404).json({ error: "Recipe not found" });
+  }
+
+  const body = {
+    ...req.body,
+    tags: req.body.tags ? JSON.parse(req.body.tags) : [],
+    ingredients: req.body.ingredients ? JSON.parse(req.body.ingredients) : [],
+    instructions: req.body.instructions ? JSON.parse(req.body.instructions) : [],
+    prepMinutes: Number(req.body.prepMinutes),
+    cookMinutes: Number(req.body.cookMinutes),
+    servings: Number(req.body.servings),
+    calories: Number(req.body.calories),
+  };
+
+  const result = validateRecipe(body);
+
+  if (result.error) {
+    return res.status(400).send(result.error.details[0].message);
+  }
+
+  const updatedRecipe = {
+    id: id,
+    title: body.title,
+    description: body.description,
+    image: req.file ? `/images/${req.file.filename}` : recipes[index].image,
+    tags: body.tags,
+    prepMinutes: body.prepMinutes,
+    cookMinutes: body.cookMinutes,
+    servings: body.servings,
+    calories: body.calories,
+    ingredients: body.ingredients,
+    instructions: body.instructions,
+  };
+
+  recipes[index] = updatedRecipe;
+  res.status(200).json(updatedRecipe);
+});
+
+// DELETE /api/recipes/:id — remove a recipe
+app.delete("/api/recipes/:id", (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const index = recipes.findIndex((r) => r.id === id);
+
+  if (index === -1) {
+    return res.status(404).json({ error: "Recipe not found" });
+  }
+
+  recipes.splice(index, 1);
+  res.status(200).json({ message: "Recipe deleted successfully" });
+});
+
 const validateRecipe = (recipe) => {
   const schema = Joi.object({
     title: Joi.string().min(3).required(),
