@@ -9,6 +9,7 @@ const recipes = require("./data/recipes");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const { MONGODB_URI } = process.env;
 
 // Enable CORS for all origins so the React client can access the API
 app.use(cors());
@@ -31,23 +32,63 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Connect to MongoDB
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log("Connected to mongodb..."))
-  .catch((err) => console.error("could not connect ot mongodb...", err));
+// Connect to MongoDB and start the server only after a successful connection
+const startServer = async () => {
+  if (!MONGODB_URI) {
+    console.error("MONGODB_URI is missing. Add it to your .env file.");
+    process.exit(1);
+  }
+
+  try {
+    await mongoose.connect(MONGODB_URI);
+    console.log("Connected to MongoDB");
+
+    const server = app.listen(PORT, () => {
+      console.log(`Meals on Mesa API running on http://localhost:${PORT}`);
+    });
+
+    server.on("error", (err) => {
+      if (err.code === "EADDRINUSE") {
+        console.error(`Port ${PORT} is already in use. Stop the other server or set a different PORT in .env.`);
+      } else {
+        console.error("Server startup error:", err.message);
+      }
+      process.exit(1);
+    });
+  } catch (err) {
+    console.error("Could not connect to MongoDB:", err.message);
+    process.exit(1);
+  }
+};
+
+const recipeSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  image: { type: String, required: true },
+  tags: { type: [String], required: true },
+  prepMinutes: { type: Number, required: true },
+  cookMinutes: { type: Number, required: true },
+  servings: { type: Number, required: true },
+  calories: { type: Number, required: true },
+  ingredients: { type: [String], required: true },
+  instructions: { type: [String], required: true },
+});
+
+const Recipe = mongoose.model("Recipe", recipeSchema);
+
 
 // ---------- API Routes ----------
 
 // GET /api/recipes — return full recipe list
-app.get("/api/recipes", (_req, res) => {
+app.get("/api/recipes", async(_req, res) => {
+  const recipes = await Recipe.find();
   res.json(recipes);
 });
 
 // GET /api/recipes/:id — return a single recipe by id
-app.get("/api/recipes/:id", (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  const recipe = recipes.find((r) => r.id === id);
+app.get("/api/recipes/:id", async(req, res) => {
+  const recipeId = req.params.id;
+  const recipe = await Recipe.findById(recipeId);
 
   if (!recipe) {
     return res.status(404).json({ error: "Recipe not found" });
@@ -57,7 +98,7 @@ app.get("/api/recipes/:id", (req, res) => {
 });
 
 // POST /api/recipes — add a new recipe
-app.post("/api/recipes", upload.single("img"), (req, res) => {
+app.post("/api/recipes", upload.single("img"), async(req, res) => {
   // Parse array fields sent as JSON strings from FormData
   const body = {
     ...req.body,
@@ -77,8 +118,7 @@ app.post("/api/recipes", upload.single("img"), (req, res) => {
     return;
   }
 
-  const recipe = {
-    id: recipes.length + 1,
+  const recipe = new Recipe({
     title: body.title,
     description: body.description,
     image: req.file ? `/images/${req.file.filename}` : "/images/salmon_salad.png",
@@ -89,21 +129,21 @@ app.post("/api/recipes", upload.single("img"), (req, res) => {
     calories: body.calories,
     ingredients: body.ingredients,
     instructions: body.instructions,
-  };
+  });
 
-  recipes.push(recipe);
-  res.status(200).send(recipe);
+  const newRecipe = await recipe.save();
+  res.status(200).send(newRecipe);
 });
 
 // PUT /api/recipes/:id — update an existing recipe
-app.put("/api/recipes/:id", upload.single("img"), (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  const index = recipes.findIndex((r) => r.id === id);
+app.put("/api/recipes/:id", upload.single("img"), async(req, res) => {
+  const recipeId = req.params.id;
+  const recipe = await Recipe.findById(recipeId);
 
-  if (index === -1) {
+  if (!recipe) {
     return res.status(404).json({ error: "Recipe not found" });
   }
-
+  
   const body = {
     ...req.body,
     tags: req.body.tags ? JSON.parse(req.body.tags) : [],
@@ -121,11 +161,10 @@ app.put("/api/recipes/:id", upload.single("img"), (req, res) => {
     return res.status(400).send(result.error.details[0].message);
   }
 
-  const updatedRecipe = {
-    id: id,
+  const fieldsToUpdate = {
     title: body.title,
     description: body.description,
-    image: req.file ? `/images/${req.file.filename}` : recipes[index].image,
+    image: req.file ? `/images/${req.file.filename}` : recipe.image,
     tags: body.tags,
     prepMinutes: body.prepMinutes,
     cookMinutes: body.cookMinutes,
@@ -134,21 +173,27 @@ app.put("/api/recipes/:id", upload.single("img"), (req, res) => {
     ingredients: body.ingredients,
     instructions: body.instructions,
   };
+  const updatedRecipe = await Recipe.findByIdAndUpdate(recipeId, fieldsToUpdate, { new: true });
+  
+  if(!updatedRecipe) {
+    res.status(404).json({ error: "Recipe not found" });
+  } else {
+    const recipe = await Recipe.findById(recipeId);
+    res.status(200).json(recipe);
+  }
 
-  recipes[index] = updatedRecipe;
-  res.status(200).json(updatedRecipe);
+  
 });
 
 // DELETE /api/recipes/:id — remove a recipe
-app.delete("/api/recipes/:id", (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  const index = recipes.findIndex((r) => r.id === id);
+app.delete("/api/recipes/:id", async(req, res) => {
+  const recipeId = req.params.id;
+  const deletedRecipe = await Recipe.findByIdAndDelete(recipeId);
 
-  if (index === -1) {
+  if (!deletedRecipe) {
     return res.status(404).json({ error: "Recipe not found" });
   }
 
-  recipes.splice(index, 1);
   res.status(200).json({ message: "Recipe deleted successfully" });
 });
 
@@ -176,6 +221,4 @@ app.get("/", (_req, res) => {
 
 // ---------- Start server ----------
 
-app.listen(PORT, () => {
-  console.log(`Meals on Mesa API running on http://localhost:${PORT}`);
-});
+startServer();
