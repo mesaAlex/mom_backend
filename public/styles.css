@@ -1,11 +1,11 @@
 :root {
-  --beige: #efe6dc;
+  --beige:  #efe6dc;
   --accent: #8d5b47;
-  --muted: #7a9a8e;
-  --dark: #3b2f2a;
+  --muted:  #7a9a8e;
+  --dark:   #3b2f2a;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: 'Instrument Sans', Arial, sans-serif;
@@ -16,33 +16,19 @@ body {
   flex-direction: column;
 }
 
+/* ---------- Header ---------- */
 header {
   background: #f2ebe6;
   padding: 20px 0;
   border-bottom: 3px solid var(--accent);
 }
 
-.wrap {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
+.wrap { max-width: 900px; margin: 0 auto; padding: 0 20px; }
 
-header .wrap {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+header .wrap { display: flex; align-items: center; justify-content: space-between; }
 
-.brand {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: var(--dark);
-}
-
-.brand span {
-  color: var(--accent);
-}
+.brand { font-size: 1.6rem; font-weight: 700; color: var(--dark); }
+.brand span { color: var(--accent); }
 
 .badge {
   background: var(--muted);
@@ -53,16 +39,10 @@ header .wrap {
   font-weight: 500;
 }
 
-main {
-  flex: 1;
-  padding: 48px 0;
-}
+/* ---------- Main ---------- */
+main { flex: 1; padding: 48px 0; }
 
-h1 {
-  font-size: 2.2rem;
-  font-weight: 300;
-  margin-bottom: 8px;
-}
+h1 { font-size: 2.2rem; font-weight: 300; margin-bottom: 8px; }
 
 .subtitle {
   color: #666;
@@ -71,18 +51,18 @@ h1 {
   line-height: 1.6;
 }
 
+/* ---------- Endpoint cards ---------- */
 .endpoint-card {
   background: #fff;
   border-radius: 14px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
   padding: 28px 32px;
   margin-bottom: 24px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-
 .endpoint-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
 }
 
 .endpoint-header {
@@ -95,14 +75,18 @@ h1 {
 
 .method {
   display: inline-block;
-  background: var(--muted);
   color: #fff;
   padding: 4px 14px;
   border-radius: 6px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
+.method.get    { background: var(--muted); }
+.method.post   { background: #4a90a4; }
+.method.put    { background: #b07d3a; }
+.method.delete { background: #c0392b; }
 
 .endpoint-path {
   font-family: 'Courier New', Courier, monospace;
@@ -110,21 +94,16 @@ h1 {
   font-weight: 600;
   color: var(--accent);
 }
+.endpoint-path a { color: var(--accent); text-decoration: none; border-bottom: 1px dashed var(--accent); }
+.endpoint-path a:hover { border-bottom-style: solid; }
 
-.endpoint-path a {
+.endpoint-desc { color: #555; line-height: 1.6; margin-bottom: 14px; }
+.endpoint-desc code {
+  background: #f2ebe6;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
   color: var(--accent);
-  text-decoration: none;
-  border-bottom: 1px dashed var(--accent);
-}
-
-.endpoint-path a:hover {
-  border-bottom-style: solid;
-}
-
-.endpoint-desc {
-  color: #555;
-  line-height: 1.6;
-  margin-bottom: 14px;
 }
 
 .response-label {
@@ -148,9 +127,10 @@ h1 {
   white-space: pre;
 }
 
+/* ---------- Info grid ---------- */
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
   margin-top: 40px;
 }
@@ -161,19 +141,10 @@ h1 {
   padding: 20px;
   text-align: center;
 }
+.info-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; color: var(--accent); }
+.info-card p  { font-size: 0.9rem; color: #666; }
 
-.info-card h3 {
-  font-size: 1rem;
-  font-weight: 500;
-  margin-bottom: 4px;
-  color: var(--accent);
-}
-
-.info-card p {
-  font-size: 0.9rem;
-  color: #666;
-}
-
+/* ---------- Footer ---------- */
 footer {
   background: var(--accent);
   color: #fff;
@@ -182,8 +153,9 @@ footer {
   font-size: 0.85rem;
 }
 
+/* ---------- Responsive ---------- */
 @media (max-width: 600px) {
   h1 { font-size: 1.7rem; }
   .endpoint-card { padding: 20px; }
-  .endpoint-header { gap: 8px; }
 }
+

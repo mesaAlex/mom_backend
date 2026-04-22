@@ -80,127 +80,119 @@ const Recipe = mongoose.model("Recipe", recipeSchema);
 // ---------- API Routes ----------
 
 // GET /api/recipes — return full recipe list
-app.get("/api/recipes", async(_req, res) => {
-  const recipes = await Recipe.find();
-  res.json(recipes);
+app.get("/api/recipes", async (_req, res) => {
+  try {
+    const recipes = await Recipe.find();
+    res.json(recipes);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch recipes" });
+  }
 });
 
 // GET /api/recipes/:id — return a single recipe by id
-app.get("/api/recipes/:id", async(req, res) => {
-  const recipeId = req.params.id;
-  const recipe = await Recipe.findById(recipeId);
-
-  if (!recipe) {
-    return res.status(404).json({ error: "Recipe not found" });
+app.get("/api/recipes/:id", async (req, res) => {
+  try {
+    const recipe = await Recipe.findById(req.params.id);
+    if (!recipe) return res.status(404).json({ error: "Recipe not found" });
+    res.json(recipe);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch recipe" });
   }
-
-  res.json(recipe);
 });
 
 // POST /api/recipes — add a new recipe
-app.post("/api/recipes", upload.single("img"), async(req, res) => {
-  // Parse array fields sent as JSON strings from FormData
-  const body = {
-    ...req.body,
-    tags: req.body.tags ? JSON.parse(req.body.tags) : [],
-    ingredients: req.body.ingredients ? JSON.parse(req.body.ingredients) : [],
-    instructions: req.body.instructions ? JSON.parse(req.body.instructions) : [],
-    prepMinutes: Number(req.body.prepMinutes),
-    cookMinutes: Number(req.body.cookMinutes),
-    servings: Number(req.body.servings),
-    calories: Number(req.body.calories),
-  };
+app.post("/api/recipes", upload.single("img"), async (req, res) => {
+  try {
+    const body = {
+      ...req.body,
+      tags: req.body.tags ? JSON.parse(req.body.tags) : [],
+      ingredients: req.body.ingredients ? JSON.parse(req.body.ingredients) : [],
+      instructions: req.body.instructions ? JSON.parse(req.body.instructions) : [],
+      prepMinutes: Number(req.body.prepMinutes),
+      cookMinutes: Number(req.body.cookMinutes),
+      servings: Number(req.body.servings),
+      calories: Number(req.body.calories),
+    };
 
-  const result = validateRecipe(body);
+    const { error } = validateRecipe(body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
 
-  if (result.error) {
-    res.status(400).send(result.error.details[0].message);
-    return;
+    const recipe = new Recipe({
+      title: body.title,
+      description: body.description,
+      image: req.file ? `/images/${req.file.filename}` : "/images/salmon_salad.png",
+      tags: body.tags,
+      prepMinutes: body.prepMinutes,
+      cookMinutes: body.cookMinutes,
+      servings: body.servings,
+      calories: body.calories,
+      ingredients: body.ingredients,
+      instructions: body.instructions,
+    });
+
+    const newRecipe = await recipe.save();
+    res.status(201).json(newRecipe);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create recipe" });
   }
-
-  const recipe = new Recipe({
-    title: body.title,
-    description: body.description,
-    image: req.file ? `/images/${req.file.filename}` : "/images/salmon_salad.png",
-    tags: body.tags,
-    prepMinutes: body.prepMinutes,
-    cookMinutes: body.cookMinutes,
-    servings: body.servings,
-    calories: body.calories,
-    ingredients: body.ingredients,
-    instructions: body.instructions,
-  });
-
-  const newRecipe = await recipe.save();
-  res.status(200).send(newRecipe);
 });
 
 // PUT /api/recipes/:id — update an existing recipe
-app.put("/api/recipes/:id", upload.single("img"), async(req, res) => {
-  const recipeId = req.params.id;
-  const recipe = await Recipe.findById(recipeId);
+app.put("/api/recipes/:id", upload.single("img"), async (req, res) => {
+  try {
+    const existing = await Recipe.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: "Recipe not found" });
 
-  if (!recipe) {
-    return res.status(404).json({ error: "Recipe not found" });
+    const body = {
+      ...req.body,
+      tags: req.body.tags ? JSON.parse(req.body.tags) : [],
+      ingredients: req.body.ingredients ? JSON.parse(req.body.ingredients) : [],
+      instructions: req.body.instructions ? JSON.parse(req.body.instructions) : [],
+      prepMinutes: Number(req.body.prepMinutes),
+      cookMinutes: Number(req.body.cookMinutes),
+      servings: Number(req.body.servings),
+      calories: Number(req.body.calories),
+    };
+
+    const { error } = validateRecipe(body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
+
+    const fieldsToUpdate = {
+      title: body.title,
+      description: body.description,
+      image: req.file ? `/images/${req.file.filename}` : existing.image,
+      tags: body.tags,
+      prepMinutes: body.prepMinutes,
+      cookMinutes: body.cookMinutes,
+      servings: body.servings,
+      calories: body.calories,
+      ingredients: body.ingredients,
+      instructions: body.instructions,
+    };
+
+    const updated = await Recipe.findByIdAndUpdate(req.params.id, fieldsToUpdate, { returnDocument: "after" });
+    res.status(200).json(updated);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update recipe" });
   }
-  
-  const body = {
-    ...req.body,
-    tags: req.body.tags ? JSON.parse(req.body.tags) : [],
-    ingredients: req.body.ingredients ? JSON.parse(req.body.ingredients) : [],
-    instructions: req.body.instructions ? JSON.parse(req.body.instructions) : [],
-    prepMinutes: Number(req.body.prepMinutes),
-    cookMinutes: Number(req.body.cookMinutes),
-    servings: Number(req.body.servings),
-    calories: Number(req.body.calories),
-  };
-
-  const result = validateRecipe(body);
-
-  if (result.error) {
-    return res.status(400).send(result.error.details[0].message);
-  }
-
-  const fieldsToUpdate = {
-    title: body.title,
-    description: body.description,
-    image: req.file ? `/images/${req.file.filename}` : recipe.image,
-    tags: body.tags,
-    prepMinutes: body.prepMinutes,
-    cookMinutes: body.cookMinutes,
-    servings: body.servings,
-    calories: body.calories,
-    ingredients: body.ingredients,
-    instructions: body.instructions,
-  };
-  const updatedRecipe = await Recipe.findByIdAndUpdate(recipeId, fieldsToUpdate, { new: true });
-  
-  if(!updatedRecipe) {
-    res.status(404).json({ error: "Recipe not found" });
-  } else {
-    const recipe = await Recipe.findById(recipeId);
-    res.status(200).json(recipe);
-  }
-
-  
 });
 
 // DELETE /api/recipes/:id — remove a recipe
-app.delete("/api/recipes/:id", async(req, res) => {
-  const recipeId = req.params.id;
-  const deletedRecipe = await Recipe.findByIdAndDelete(recipeId);
-
-  if (!deletedRecipe) {
-    return res.status(404).json({ error: "Recipe not found" });
+app.delete("/api/recipes/:id", async (req, res) => {
+  try {
+    const deleted = await Recipe.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: "Recipe not found" });
+    res.status(200).json({ message: "Recipe deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete recipe" });
   }
-
-  res.status(200).json({ message: "Recipe deleted successfully" });
 });
 
 const validateRecipe = (recipe) => {
   const schema = Joi.object({
     title: Joi.string().min(3).required(),
     description: Joi.string().min(5).required(),
+    image: Joi.string().optional(),
     tags: Joi.array().items(Joi.string()).min(1).required(),
     prepMinutes: Joi.number().min(0).required(),
     cookMinutes: Joi.number().min(0).required(),
@@ -210,7 +202,7 @@ const validateRecipe = (recipe) => {
     instructions: Joi.array().items(Joi.string()).min(1).required(),
   });
 
-  return schema.validate(recipe);
+  return schema.validate(recipe, { allowUnknown: false, stripUnknown: true });
 };
 
 // ---------- Root — serve API docs page ----------

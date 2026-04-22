@@ -28,7 +28,7 @@
       <!-- Endpoint 1 -->
       <div class="endpoint-card">
         <div class="endpoint-header">
-          <span class="method">GET</span>
+          <span class="method get">GET</span>
           <span class="endpoint-path"><a href="/api/recipes">/api/recipes</a></span>
         </div>
         <p class="endpoint-desc">
@@ -39,7 +39,7 @@
         <p class="response-label">Example Response</p>
         <div class="response-preview">[
   {
-    "id": 1,
+    "_id": "...",
     "title": "Salmon Salad",
     "description": "A fresh, high-protein salad …",
     "image": "/images/salmon_salad.png",
@@ -58,46 +58,75 @@
       <!-- Endpoint 2 -->
       <div class="endpoint-card">
         <div class="endpoint-header">
-          <span class="method">GET</span>
-          <span class="endpoint-path"><a href="/api/recipes/1">/api/recipes/:id</a></span>
+          <span class="method get">GET</span>
+          <span class="endpoint-path"><a href="/api/recipes">/api/recipes/:id</a></span>
         </div>
         <p class="endpoint-desc">
-          Returns a single recipe object by its numeric <code>id</code>.
+          Returns a single recipe object by its MongoDB <code>_id</code>.
           Returns a 404 JSON error if the recipe is not found.
         </p>
         <p class="response-label">Example Response</p>
         <div class="response-preview">{
-  "id": 1,
+  "_id": "...",
   "title": "Salmon Salad",
-  "description": "A fresh, high-protein salad …",
-  "image": "/images/salmon_salad.png",
-  "tags": ["High-protein", "Low-carb", "Gut-friendly"],
-  "prepMinutes": 10,
-  "cookMinutes": 12,
-  "servings": 2,
-  "calories": 420,
-  "ingredients": ["…"],
-  "instructions": ["…"]
+  …
 }</div>
       </div>
 
       <!-- Endpoint 3 -->
       <div class="endpoint-card">
         <div class="endpoint-header">
-          <span class="method">GET</span>
+          <span class="method post">POST</span>
+          <span class="endpoint-path">/api/recipes</span>
+        </div>
+        <p class="endpoint-desc">
+          Creates a new recipe. Accepts <code>multipart/form-data</code> with an optional
+          <code>img</code> file field. All text fields are validated with Joi before saving.
+          Returns the created recipe with status <code>201</code>.
+        </p>
+      </div>
+
+      <!-- Endpoint 4 -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method put">PUT</span>
+          <span class="endpoint-path">/api/recipes/:id</span>
+        </div>
+        <p class="endpoint-desc">
+          Updates an existing recipe by <code>_id</code>. Accepts <code>multipart/form-data</code>.
+          If no new image is uploaded, the existing image is preserved.
+          Returns the updated recipe with status <code>200</code>.
+        </p>
+      </div>
+
+      <!-- Endpoint 5 -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method delete">DELETE</span>
+          <span class="endpoint-path">/api/recipes/:id</span>
+        </div>
+        <p class="endpoint-desc">
+          Permanently deletes a recipe from MongoDB by <code>_id</code>.
+          Returns <code>{ "message": "Recipe deleted successfully" }</code> on success.
+        </p>
+      </div>
+
+      <!-- Endpoint 6 -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method get">GET</span>
           <span class="endpoint-path"><a href="/images/salmon_salad.png">/images/:filename</a></span>
         </div>
         <p class="endpoint-desc">
           Static file serving. All recipe images are available at
-          <code>/images/&lt;filename&gt;</code> (e.g.,
-          <code>/images/salmon_salad.png</code>).
+          <code>/images/&lt;filename&gt;</code>.
         </p>
       </div>
 
       <div class="info-grid">
         <div class="info-card">
-          <h3 id="recipe-count">… Recipes</h3>
-          <p>Detailed nutrition-focused entries</p>
+          <h3 id="recipe-count">— Recipes</h3>
+          <p>Live count from MongoDB</p>
         </div>
         <div class="info-card">
           <h3>CORS Enabled</h3>
@@ -106,6 +135,10 @@
         <div class="info-card">
           <h3>JSON Format</h3>
           <p>Standard REST responses</p>
+        </div>
+        <div class="info-card">
+          <h3>Joi Validation</h3>
+          <p>All inputs validated server-side</p>
         </div>
       </div>
     </div>
@@ -120,6 +153,9 @@
       .then(res => res.json())
       .then(data => {
         document.getElementById("recipe-count").textContent = data.length + " Recipes";
+      })
+      .catch(() => {
+        document.getElementById("recipe-count").textContent = "Unavailable";
       });
   </script>
 </body>
